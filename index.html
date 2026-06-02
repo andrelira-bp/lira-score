@@ -176,8 +176,8 @@ body::before {
   margin-bottom:20px;
 }
 .kairos-logo {
-  width:840px;
-  max-width:100%;
+  width:480px;
+  max-width:88%;
   height:auto;
   display:block;
   margin:0 auto 8px;
@@ -1290,30 +1290,70 @@ body::before {
 // QUIZ DATA
 // ══════════════════════════════════════════
 const QUESTIONS = [
-  { pilar:'💪 Treino', pilarKey:'treino', text:'Qual é seu nível atual de treino?', opts:[
-    {t:'Nunca treinei ou parei há mais de 1 ano',v:0},{t:'Iniciante — treino há menos de 6 meses',v:1},{t:'Intermediário — treino há 6 meses a 2 anos',v:2},{t:'Avançado — treino há mais de 2 anos',v:3}]},
-  { pilar:'💪 Treino', pilarKey:'treino', text:'Com que frequência você treina por semana?', opts:[
-    {t:'Não treino atualmente',v:0},{t:'1 a 2 vezes por semana',v:1},{t:'3 a 4 vezes por semana',v:2},{t:'5 ou mais vezes por semana',v:3}]},
-  { pilar:'💪 Treino', pilarKey:'treino', text:'Você treina com planilha ou acompanhamento profissional?', opts:[
-    {t:'Treino por conta própria sem planilha',v:0},{t:'Uso planilha genérica da internet',v:1},{t:'Tenho planilha, mas sem acompanhamento',v:2},{t:'Tenho acompanhamento profissional',v:3}]},
+  // ── TREINO ──
+  { pilar:'💪 Treino', pilarKey:'treino', text:'Qual é o seu nível de experiência com treino?', opts:[
+    {t:'Nunca treinei — sou completo iniciante',v:0},
+    {t:'Treinei no passado, mas faz tempo que parei',v:1},
+    {t:'Treino há menos de 1 ano',v:2},
+    {t:'Treino há 1 ano ou mais com regularidade',v:3}]},
+  { pilar:'💪 Treino', pilarKey:'treino', text:'Com que frequência você se exercita por semana?', opts:[
+    {t:'Não me exercito — estou começando do zero',v:0},
+    {t:'1 a 2 vezes por semana',v:1},
+    {t:'3 a 4 vezes por semana',v:2},
+    {t:'5 ou mais vezes por semana',v:3}]},
+  { pilar:'💪 Treino', pilarKey:'treino', text:'Como é o seu treino atualmente?', opts:[
+    {t:'Ainda não tenho treino — não sei por onde começar',v:0},
+    {t:'Faço atividade física esporádica, sem método',v:1},
+    {t:'Tenho uma planilha, mas sem acompanhamento',v:2},
+    {t:'Tenho acompanhamento profissional',v:3}]},
+  // ── NUTRIÇÃO ──
   { pilar:'🥗 Nutrição', pilarKey:'nutricao', text:'Como você descreveria sua alimentação hoje?', opts:[
-    {t:'Completamente desorganizada, como de tudo',v:0},{t:'Tento comer bem, mas sem consistência',v:1},{t:'Sigo uma alimentação relativamente organizada',v:2},{t:'Tenho protocolo nutricional definido',v:3}]},
+    {t:'Completamente desorganizada — como de tudo sem critério',v:0},
+    {t:'Tento comer bem, mas sem consistência',v:1},
+    {t:'Sigo uma alimentação relativamente organizada',v:2},
+    {t:'Tenho protocolo nutricional definido',v:3}]},
   { pilar:'🥗 Nutrição', pilarKey:'nutricao', text:'Você acompanha sua ingestão de proteínas diariamente?', opts:[
-    {t:'Não, nunca penso nisso',v:0},{t:'Às vezes, mas sem precisão',v:1},{t:'Sim, monitoro com frequência',v:2},{t:'Sim, bato minha meta proteica todos os dias',v:3}]},
+    {t:'Não, nunca pensei nisso',v:0},
+    {t:'Às vezes, mas sem precisão',v:1},
+    {t:'Sim, monitoro com frequência',v:2},
+    {t:'Sim, bato minha meta proteica todos os dias',v:3}]},
   { pilar:'🥗 Nutrição', pilarKey:'nutricao', text:'Qual seu maior desafio nutricional?', opts:[
-    {t:'Não sei nem por onde começar',v:0},{t:'Dificuldade em manter consistência',v:1},{t:'Ajuste fino para melhorar resultado',v:2},{t:'Periodização nutricional avançada',v:3}]},
+    {t:'Não sei nem por onde começar com alimentação',v:0},
+    {t:'Dificuldade em manter consistência',v:1},
+    {t:'Ajuste fino para melhorar resultado',v:2},
+    {t:'Periodização nutricional avançada',v:3}]},
+  // ── RECUPERAÇÃO ──
   { pilar:'😴 Recuperação', pilarKey:'recuperacao', text:'Quantas horas você dorme por noite em média?', opts:[
-    {t:'Menos de 5 horas',v:0},{t:'5 a 6 horas',v:1},{t:'6 a 7 horas',v:2},{t:'7 a 9 horas (ideal)',v:3}]},
+    {t:'Menos de 5 horas',v:0},
+    {t:'5 a 6 horas',v:1},
+    {t:'6 a 7 horas',v:2},
+    {t:'7 a 9 horas (ideal)',v:3}]},
   { pilar:'😴 Recuperação', pilarKey:'recuperacao', text:'Como você classifica seu nível de estresse hoje?', opts:[
-    {t:'Muito alto — me sinto esgotado',v:0},{t:'Alto — difícil de controlar',v:1},{t:'Moderado — gerenciável',v:2},{t:'Baixo — bem equilibrado',v:3}]},
-  { pilar:'😴 Recuperação', pilarKey:'recuperacao', text:'Você realiza alguma prática de recuperação ativa?', opts:[
-    {t:'Não faço nada de recuperação',v:0},{t:'Raramente (alongamento eventual)',v:1},{t:'Sim, regularmente (alongamento, mobilidade)',v:2},{t:'Sim, com protocolo estruturado',v:3}]},
-  { pilar:'🔥 Consistência', pilarKey:'consistencia', text:'Há quanto tempo você busca seu objetivo fitness sem resultado?', opts:[
-    {t:'Sempre começo e paro — nunca mantive',v:0},{t:'Mantenho por semanas, mas abandono',v:1},{t:'Fico meses, mas eventualmente paro',v:2},{t:'Sou consistente há anos',v:3}]},
-  { pilar:'🔥 Consistência', pilarKey:'consistencia', text:'Qual seu principal sabotador de resultado?', opts:[
-    {t:'Falta de motivação e disciplina',v:0},{t:'Rotina agitada e falta de tempo',v:1},{t:'Não sei o método certo para mim',v:2},{t:'Apenas preciso de ajuste fino',v:3}]},
+    {t:'Muito alto — me sinto esgotado',v:0},
+    {t:'Alto — difícil de controlar',v:1},
+    {t:'Moderado — gerenciável',v:2},
+    {t:'Baixo — bem equilibrado',v:3}]},
+  { pilar:'😴 Recuperação', pilarKey:'recuperacao', text:'Você realiza alguma prática de recuperação ou bem-estar?', opts:[
+    {t:'Não faço nada — nem sei o que fazer',v:0},
+    {t:'Raramente (alongamento eventual)',v:1},
+    {t:'Sim, regularmente (alongamento, mobilidade)',v:2},
+    {t:'Sim, com protocolo estruturado',v:3}]},
+  // ── CONSISTÊNCIA ──
+  { pilar:'🔥 Consistência', pilarKey:'consistencia', text:'Como você descreveria sua jornada de transformação até hoje?', opts:[
+    {t:'Nunca comecei de verdade — sempre adiando',v:0},
+    {t:'Começo e paro — não consigo manter',v:1},
+    {t:'Fico meses, mas eventualmente abandono',v:2},
+    {t:'Sou consistente há anos',v:3}]},
+  { pilar:'🔥 Consistência', pilarKey:'consistencia', text:'Qual seu principal obstáculo para chegar ao seu objetivo?', opts:[
+    {t:'Não sei por onde começar — falta base total',v:0},
+    {t:'Falta de motivação e disciplina',v:1},
+    {t:'Rotina agitada e falta de tempo',v:2},
+    {t:'Apenas preciso de ajuste fino no método',v:3}]},
   { pilar:'🔥 Consistência', pilarKey:'consistencia', text:'Qual seu comprometimento com sua transformação agora?', opts:[
-    {t:'Estou explorando, sem urgência',v:0},{t:'Quero começar em breve',v:1},{t:'Estou comprometido e pronto para agir',v:2},{t:'Totalmente comprometido, preciso de guia',v:3}]}
+    {t:'Estou explorando, sem urgência',v:0},
+    {t:'Quero começar em breve',v:1},
+    {t:'Estou comprometido e pronto para agir',v:2},
+    {t:'Totalmente comprometido — preciso do guia certo',v:3}]}
 ];
 
 const PILARES = [
@@ -1355,30 +1395,36 @@ window.addEventListener('load', () => {
 // ══════════════════════════════════════════
 // START QUIZ
 // ══════════════════════════════════════════
+function waitFirebase(timeout=8000) {
+  return new Promise((resolve, reject) => {
+    if (window._firebaseReady) return resolve();
+    const t = setTimeout(() => reject(new Error('Firebase timeout')), timeout);
+    window.addEventListener('firebaseReady', () => { clearTimeout(t); resolve(); }, { once: true });
+  });
+}
+
 async function startQuiz() {
   userName  = document.getElementById('input-name').value.trim();
   userPhone = document.getElementById('input-phone').value.trim();
   if (!userName || !userPhone) { showToast('Preencha seu nome e WhatsApp ✋'); return; }
 
-  // Verificar se WhatsApp já foi usado
   const btn = document.querySelector('.btn-start');
   btn.textContent = 'Verificando...';
   btn.disabled = true;
 
   try {
-    if (window._firebaseReady) {
-      const phoneClean = userPhone.replace(/\D/g,'');
-      const q = window._query(
-        window._col(window._db, 'bpLeads'),
-        window._where('phoneClean', '==', phoneClean)
-      );
-      const snap = await window._getDocs(q);
-      if (!snap.empty) {
-        showScreenBlocked();
-        btn.textContent = 'INICIAR DIAGNÓSTICO →';
-        btn.disabled = false;
-        return;
-      }
+    await waitFirebase();
+    const phoneClean = userPhone.replace(/\D/g,'');
+    const q = window._query(
+      window._col(window._db, 'bpLeads'),
+      window._where('phoneClean', '==', phoneClean)
+    );
+    const snap = await window._getDocs(q);
+    if (!snap.empty) {
+      showScreenBlocked();
+      btn.textContent = 'INICIAR DIAGNÓSTICO →';
+      btn.disabled = false;
+      return;
     }
   } catch(e) { console.warn('Check failed, proceeding:', e); }
 
