@@ -1395,7 +1395,7 @@ window.addEventListener('load', () => {
 // ══════════════════════════════════════════
 // START QUIZ
 // ══════════════════════════════════════════
-function waitFirebase(timeout=8000) {
+function waitFirebase(timeout=10000) {
   return new Promise((resolve, reject) => {
     if (window._firebaseReady) return resolve();
     const t = setTimeout(() => reject(new Error('Firebase timeout')), timeout);
@@ -1412,8 +1412,18 @@ async function startQuiz() {
   btn.textContent = 'Verificando...';
   btn.disabled = true;
 
+  // Aguarda Firebase — nunca deixa passar se falhar
   try {
     await waitFirebase();
+  } catch(e) {
+    showToast('Erro de conexão. Tente novamente. ❌');
+    btn.textContent = 'INICIAR DIAGNÓSTICO →';
+    btn.disabled = false;
+    return;
+  }
+
+  // Verifica se WhatsApp já foi cadastrado
+  try {
     const phoneClean = userPhone.replace(/\D/g,'');
     const q = window._query(
       window._col(window._db, 'bpLeads'),
@@ -1426,8 +1436,16 @@ async function startQuiz() {
       btn.disabled = false;
       return;
     }
-  } catch(e) { console.warn('Check failed, proceeding:', e); }
+  } catch(e) {
+    // Erro no Firestore — bloqueia por segurança, não deixa passar
+    console.error('Firestore check error:', e);
+    showToast('Erro ao verificar cadastro. Tente novamente. ❌');
+    btn.textContent = 'INICIAR DIAGNÓSTICO →';
+    btn.disabled = false;
+    return;
+  }
 
+  // Tudo ok — inicia quiz
   btn.textContent = 'INICIAR DIAGNÓSTICO →';
   btn.disabled = false;
   answers = new Array(12).fill(null);
