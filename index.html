@@ -16,7 +16,7 @@
 <!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, query, orderBy, where, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, where, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAVCkCx-jiIqLCKk4-_Qh6kG1T8Vns4xtg",
@@ -40,6 +40,7 @@ window._orderBy = orderBy;
 window._serverTimestamp = serverTimestamp;
 window._where = where;
 window._limit = limit;
+window._deleteDoc = deleteDoc;
 window._firebaseReady = true;
 </script>
 
@@ -911,6 +912,56 @@ body::before {
   transition:border 0.2s;
 }
 .lead-card:hover { border-color:var(--dark4); }
+.lead-actions {
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:6px;
+  margin-top:12px;
+}
+.btn-lead-action {
+  padding:9px 4px;
+  border-radius:8px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  cursor:pointer;
+  border:none;
+  transition:opacity 0.2s;
+}
+.btn-lead-action:hover { opacity:0.75; }
+.btn-lead-ver    { background:var(--dark3); color:var(--gold); }
+.btn-lead-reset  { background:var(--dark3); color:#60a5fa; }
+.btn-lead-delete { background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3); }
+.diag-modal-overlay {
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.88);
+  z-index:9999;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.diag-modal-overlay.open { display:flex; }
+.diag-modal {
+  background:var(--dark1);
+  border:1px solid var(--dark3);
+  border-radius:16px;
+  padding:24px;
+  max-width:480px;
+  width:100%;
+  max-height:82vh;
+  overflow-y:auto;
+}
+.diag-modal-name { font-family:'Bebas Neue',sans-serif; font-size:28px; color:var(--gold); margin-bottom:2px; }
+.diag-modal-sub  { font-size:13px; color:var(--gray); margin-bottom:18px; }
+.diag-section-title { font-size:11px; font-weight:700; letter-spacing:2px; color:var(--gold-dim); text-transform:uppercase; margin-bottom:8px; }
+.diag-text { font-size:14px; color:#ccc; line-height:1.75; margin-bottom:16px; }
+.diag-action-item { font-size:13px; color:#ddd; padding:8px 0; border-bottom:1px solid var(--dark3); line-height:1.5; }
+.diag-action-item:last-child { border-bottom:none; }
+.btn-close-modal { width:100%; margin-top:16px; padding:13px; background:var(--dark3); color:#fff; border:none; border-radius:10px; font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:700; letter-spacing:1px; cursor:pointer; }
 .lead-top {
   display:flex;
   justify-content:space-between;
@@ -1891,6 +1942,11 @@ function renderLeads() {
           <option value="sem interesse" ${l.status==='sem interesse'?'selected':''}>❌ Sem interesse</option>
         </select>
       </div>
+      <div class="lead-actions">
+        <button class="btn-lead-action btn-lead-ver"    onclick="verDiagnostico('${l.id}')">📋 Ver diagnóstico</button>
+        <button class="btn-lead-action btn-lead-reset"  onclick="resetarLead('${l.id}','${l.name}')">🔄 Resetar</button>
+        <button class="btn-lead-action btn-lead-delete" onclick="excluirLead('${l.id}','${l.name}')">🗑️ Excluir</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -1906,6 +1962,45 @@ async function updateStatus(id, sel) {
   } catch(e) { showToast('Erro ao atualizar ❌'); }
 }
 
+function verDiagnostico(id) {
+  const l = allLeads.find(l => l.id === id);
+  if (!l) return;
+  const cat = getCategory(l.score);
+  document.getElementById('diag-modal-name').textContent = l.name;
+  document.getElementById('diag-modal-sub').textContent = `Score: ${l.score}/100 — ${cat} | 💪${l.treino} 🥗${l.nutricao} 😴${l.recuperacao} 🔥${l.consistencia}`;
+  document.getElementById('diag-modal-text').textContent = l.diagnosis || 'Diagnóstico não disponível.';
+  const actionsEl = document.getElementById('diag-modal-actions');
+  if (l.actions && l.actions.length) {
+    actionsEl.innerHTML = l.actions.map((a,i) => `<div class="diag-action-item">${i+1}. ${a}</div>`).join('');
+  } else {
+    actionsEl.innerHTML = '<div class="diag-action-item">Plano de ação não disponível.</div>';
+  }
+  document.getElementById('diag-modal-overlay').classList.add('open');
+}
+
+function closeDiagModal() {
+  document.getElementById('diag-modal-overlay').classList.remove('open');
+}
+
+async function resetarLead(id, name) {
+  if (!confirm(`Resetar ${name}? O histórico será mantido, mas ela poderá fazer o diagnóstico novamente.`)) return;
+  try {
+    await window._updateDoc(window._doc(window._db,'bpLeads',id), { phoneClean: '__resetado_' + Date.now() });
+    showToast(`${name} resetado ✅`);
+  } catch(e) { showToast('Erro ao resetar ❌'); }
+}
+
+async function excluirLead(id, name) {
+  if (!confirm(`Excluir ${name} permanentemente? O WhatsApp ficará liberado para novo diagnóstico.`)) return;
+  try {
+    await window._deleteDoc(window._doc(window._db,'bpLeads',id));
+    allLeads = allLeads.filter(l => l.id !== id);
+    updateStats();
+    renderLeads();
+    showToast(`${name} excluído ✅`);
+  } catch(e) { showToast('Erro ao excluir ❌'); }
+}
+
 // ══════════════════════════════════════════
 // TOAST
 // ══════════════════════════════════════════
@@ -1918,5 +2013,18 @@ function showToast(msg) {
 
 // ── Firebase ready check ──
 </script>
+<!-- Modal Diagnóstico -->
+<div class="diag-modal-overlay" id="diag-modal-overlay" onclick="if(event.target===this)closeDiagModal()">
+  <div class="diag-modal">
+    <div class="diag-modal-name" id="diag-modal-name">—</div>
+    <div class="diag-modal-sub" id="diag-modal-sub">—</div>
+    <div class="diag-section-title">📋 Diagnóstico</div>
+    <div class="diag-text" id="diag-modal-text">—</div>
+    <div class="diag-section-title">🎯 Plano de Ação</div>
+    <div id="diag-modal-actions"></div>
+    <button class="btn-close-modal" onclick="closeDiagModal()">FECHAR</button>
+  </div>
+</div>
+
 </body>
 </html>
