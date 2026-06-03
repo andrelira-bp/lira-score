@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>BP Score — Lira Body Performance</title>
+<title>KAIRÓS — Lira Body Performance</title>
 <meta name="theme-color" content="#F5C518">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="BP Score">
+<meta name="apple-mobile-web-app-title" content="KAIRÓS">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700;800;900&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -16,7 +16,7 @@
 <!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, query, orderBy, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, query, orderBy, where, serverTimestamp, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAVCkCx-jiIqLCKk4-_Qh6kG1T8Vns4xtg",
@@ -39,8 +39,8 @@ window._query = query;
 window._orderBy = orderBy;
 window._serverTimestamp = serverTimestamp;
 window._where = where;
+window._limit = limit;
 window._firebaseReady = true;
-window.dispatchEvent(new Event('firebaseReady'));
 </script>
 
 <style>
@@ -1170,7 +1170,7 @@ body::before {
     <div class="loading-title">KAIRÓS ESTÁ ANALISANDO</div>
     <div class="loading-msgs">
       <div class="loading-msg" id="lmsg-0">KAIRÓS está analisando seu perfil...</div>
-      <div class="loading-msg" id="lmsg-1">Calculando BP Score...</div>
+      <div class="loading-msg" id="lmsg-1">Calculando seu KAIRÓS Score...</div>
       <div class="loading-msg" id="lmsg-2">Gerando diagnóstico personalizado...</div>
       <div class="loading-msg" id="lmsg-3">Preparando plano de ação...</div>
     </div>
@@ -1246,7 +1246,7 @@ body::before {
 <div id="screen-admin-login" class="screen">
   <div class="admin-login-card">
     <h2>ADMIN</h2>
-    <p>Painel de Leads — BP Score</p>
+    <p>Painel de Leads — KAIRÓS</p>
     <input type="password" id="admin-pass-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()">
     <button class="btn-admin-enter" onclick="adminLogin()">ENTRAR</button>
     <div class="admin-error" id="admin-error"></div>
@@ -1258,7 +1258,7 @@ body::before {
   <div class="admin-header">
     <div class="admin-header-left">
       <h2>📊 LEADS</h2>
-      <span id="admin-subtitle">BP Score — Lira Body Performance</span>
+      <span id="admin-subtitle">KAIRÓS — Lira Body Performance</span>
     </div>
     <button class="btn-admin-logout" onclick="adminLogout()">SAIR</button>
   </div>
@@ -1397,9 +1397,13 @@ window.addEventListener('load', () => {
 // ══════════════════════════════════════════
 function waitFirebase(timeout=10000) {
   return new Promise((resolve, reject) => {
-    if (window._firebaseReady) return resolve();
-    const t = setTimeout(() => reject(new Error('Firebase timeout')), timeout);
-    window.addEventListener('firebaseReady', () => { clearTimeout(t); resolve(); }, { once: true });
+    const start = Date.now();
+    function check() {
+      if (window._firebaseReady && window._db && window._where) return resolve();
+      if (Date.now() - start > timeout) return reject(new Error('Firebase timeout'));
+      setTimeout(check, 100);
+    }
+    check();
   });
 }
 
@@ -1412,7 +1416,7 @@ async function startQuiz() {
   btn.textContent = 'Verificando...';
   btn.disabled = true;
 
-  // Aguarda Firebase — nunca deixa passar se falhar
+  // 1. Aguarda Firebase estar pronto
   try {
     await waitFirebase();
   } catch(e) {
@@ -1422,14 +1426,15 @@ async function startQuiz() {
     return;
   }
 
-  // Verifica se WhatsApp já foi cadastrado
+  // 2. Verifica se WhatsApp já foi usado
   try {
     const phoneClean = userPhone.replace(/\D/g,'');
-    const q = window._query(
-      window._col(window._db, 'bpLeads'),
-      window._where('phoneClean', '==', phoneClean)
+    const snap = await window._getDocs(
+      window._query(
+        window._col(window._db, 'bpLeads'),
+        window._where('phoneClean', '==', phoneClean)
+      )
     );
-    const snap = await window._getDocs(q);
     if (!snap.empty) {
       showScreenBlocked();
       btn.textContent = 'INICIAR DIAGNÓSTICO →';
@@ -1437,7 +1442,6 @@ async function startQuiz() {
       return;
     }
   } catch(e) {
-    // Erro no Firestore — bloqueia por segurança, não deixa passar
     console.error('Firestore check error:', e);
     showToast('Erro ao verificar cadastro. Tente novamente. ❌');
     btn.textContent = 'INICIAR DIAGNÓSTICO →';
@@ -1445,7 +1449,7 @@ async function startQuiz() {
     return;
   }
 
-  // Tudo ok — inicia quiz
+  // 3. Liberado — inicia quiz
   btn.textContent = 'INICIAR DIAGNÓSTICO →';
   btn.disabled = false;
   answers = new Array(12).fill(null);
@@ -1533,7 +1537,7 @@ async function submitQuiz() {
     console.error(e);
     // Fallback sem IA
     const fallback = {
-      diagnosis: `${userName}, seu BP Score revela que você tem muito potencial de evolução. Com as estratégias certas e um protocolo personalizado, os resultados que você busca estão ao seu alcance. O primeiro passo é estruturar cada pilar de forma integrada — e é exatamente isso que o método BP faz por você.`,
+      diagnosis: `${userName}, seu diagnóstico KAIRÓS revela que você tem muito potencial de evolução. Com as estratégias certas e um protocolo personalizado, os resultados que você busca estão ao seu alcance. O primeiro passo é estruturar cada pilar de forma integrada — e é exatamente isso que o método BP faz por você.`,
       actions: [
         {title:'Estruture seu treino', desc:'Monte uma planilha periodizada alinhada ao seu objetivo e nível atual.'},
         {title:'Organize sua nutrição', desc:'Defina suas calorias e proteínas diárias. Isso sozinho pode mudar tudo.'},
@@ -1549,7 +1553,7 @@ async function submitQuiz() {
 
 async function callAI(summary, total, pilarScores) {
   const lang = 'português';
-  const system = `Você é André Lira, personal trainer e nutricionista com 14 anos de experiência, fundador da Lira Body Performance. Analise o questionário BP Score e retorne APENAS um JSON válido (sem markdown, sem backticks) com exatamente esta estrutura. IMPORTANTE: responda SEMPRE em ${lang}:
+  const system = `Você é André Lira, personal trainer e nutricionista com 14 anos de experiência, fundador da Lira Body Performance. Analise o questionário KAIRÓS e retorne APENAS um JSON válido (sem markdown, sem backticks) com exatamente esta estrutura. IMPORTANTE: responda SEMPRE em ${lang}:
 {
   "diagnosis": "parágrafo único de 3-4 linhas, direto, motivador mas honesto, usando o nome do cliente, destacando pontos críticos e o potencial de melhora",
   "actions": [
@@ -1578,8 +1582,8 @@ Tom: profissional, direto, empático. Nunca genérico. Baseado nas respostas rea
 }
 
 async function saveLead(total, pilarScores, aiResult) {
-  if (!window._firebaseReady) return;
   try {
+    await waitFirebase();
     await window._addDoc(window._col(window._db, 'bpLeads'), {
       name: userName,
       phone: userPhone,
@@ -1596,7 +1600,8 @@ async function saveLead(total, pilarScores, aiResult) {
       answers: answers,
       createdAt: window._serverTimestamp()
     });
-  } catch(e) { console.warn('Firestore save failed:', e); }
+    console.log('Lead salvo com sucesso ✅');
+  } catch(e) { console.error('Firestore save failed:', e); }
 }
 
 // ══════════════════════════════════════════
@@ -1656,7 +1661,7 @@ function renderResult(total, pilarScores, aiResult) {
   });
 
   // WhatsApp CTA
-  const msg = encodeURIComponent(`Olá André! Fiz o BP Score e tirei *${total}/100* — categoria *${cat}*. Quero transformar meu resultado com você! 🔥`);
+  const msg = encodeURIComponent(`Olá André! Fiz o diagnóstico KAIRÓS e tirei *${total}/100* — categoria *${cat}*. Quero transformar meu resultado com você! 🔥`);
   const wBtn = document.getElementById('btn-whatsapp');
   wBtn.onclick = () => window.open(`https://wa.me/${ANDRE_PHONE}?text=${msg}`, '_blank');
   const wBtnSvg = wBtn.querySelector('svg').outerHTML;
@@ -1731,7 +1736,7 @@ async function downloadPDF() {
       }
     }
     const name = (userName || 'resultado').replace(/\s+/g, '_');
-    pdf.save(`BPScore_${name}.pdf`);
+    pdf.save(`KAIROS_${name}.pdf`);
     showToast('PDF salvo! ✅');
   } catch(e) {
     console.error(e);
@@ -1758,16 +1763,16 @@ async function shareInstagram() {
     // Tenta Web Share API com arquivo (funciona no Chrome Android / Safari iOS)
     if (navigator.canShare) {
       const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], 'BPScore.png', { type: 'image/png' });
+      const file = new File([blob], 'KAIROS.png', { type: 'image/png' });
       if (navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: 'Meu BP Score — Lira Body Performance' });
+        await navigator.share({ files: [file], title: 'Meu KAIRÓS — Lira Body Performance' });
         return;
       }
     }
     // Fallback: baixa a imagem e mostra instrução
     const a = document.createElement('a');
     a.href = dataUrl;
-    a.download = 'BPScore_Instagram.png';
+    a.download = 'KAIROS_Instagram.png';
     a.click();
     showToast('Imagem salva! Compartilhe nos Stories 📸');
   } catch(e) {
@@ -1808,14 +1813,15 @@ function adminLogout() { showScreen('capture'); }
 function showScreenBlocked() { showScreen('blocked'); }
 
 async function loadLeads() {
-  if (!window._firebaseReady) { setTimeout(loadLeads, 500); return; }
   try {
+    await waitFirebase();
     const q = window._query(window._col(window._db, 'bpLeads'), window._orderBy('createdAt','desc'));
     const snap = await window._getDocs(q);
     allLeads = snap.docs.map(d => ({id:d.id, ...d.data()}));
     updateStats();
     renderLeads();
   } catch(e) {
+    console.error('loadLeads error:', e);
     document.getElementById('leads-list').innerHTML = '<div class="empty-state"><div class="big">⚠️</div><p>Erro ao carregar leads</p></div>';
   }
 }
@@ -1863,7 +1869,7 @@ function renderLeads() {
       <div class="lead-top">
         <div>
           <div class="lead-name">${l.name}</div>
-          <a class="lead-phone" href="https://wa.me/55${l.phone?.replace(/\D/g,'')}?text=${encodeURIComponent(`Olá ${l.name}! Vi seu BP Score de ${l.score}/100 e quero conversar sobre seu protocolo 💪`)}" target="_blank">📲 ${l.phone}</a>
+          <a class="lead-phone" href="https://wa.me/55${l.phone?.replace(/\D/g,'')}?text=${encodeURIComponent(`Olá ${l.name}! Vi seu Score KAIRÓS de ${l.score}/100 e quero conversar sobre seu protocolo 💪`)}" target="_blank">📲 ${l.phone}</a>
         </div>
         <div class="lead-score-badge">
           <div class="lead-score-num" style="color:${color}">${l.score}</div>
