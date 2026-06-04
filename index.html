@@ -1970,11 +1970,42 @@ function verDiagnostico(id) {
   document.getElementById('diag-modal-text').textContent = l.diagnosis || 'Diagnóstico não disponível.';
   const actionsEl = document.getElementById('diag-modal-actions');
   if (l.actions && l.actions.length) {
-    actionsEl.innerHTML = l.actions.map((a,i) => `<div class="diag-action-item">${i+1}. ${a}</div>`).join('');
+    actionsEl.innerHTML = l.actions.map((a,i) => {
+      const title = typeof a === 'object' ? (a.title || '') : a;
+      const desc  = typeof a === 'object' ? (a.desc  || '') : '';
+      return `<div class="diag-action-item"><strong>${i+1}. ${title}</strong>${desc ? '<br><span style="opacity:0.75;font-size:12px">'+desc+'</span>' : ''}</div>`;
+    }).join('');
   } else {
     actionsEl.innerHTML = '<div class="diag-action-item">Plano de ação não disponível.</div>';
   }
   document.getElementById('diag-modal-overlay').classList.add('open');
+}
+
+async function downloadDiagPDF() {
+  const el = document.querySelector('.diag-modal');
+  const name = document.getElementById('diag-modal-name').textContent || 'diagnostico';
+  showToast('Gerando PDF... ⏳');
+  try {
+    const canvas = await html2canvas(el, { backgroundColor:'#111', scale:2, useCORS:true, logging:false });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const imgW = 210;
+    const imgH = (canvas.height * imgW) / canvas.width;
+    let pos = 0;
+    const pageH = 297;
+    if (imgH <= pageH) {
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, imgW, imgH);
+    } else {
+      let remaining = imgH;
+      while (remaining > 0) {
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, -pos, imgW, imgH);
+        remaining -= pageH; pos += pageH;
+        if (remaining > 0) pdf.addPage();
+      }
+    }
+    pdf.save(`KAIROS_${name.replace(/\s+/g,'_')}.pdf`);
+    showToast('PDF salvo! ✅');
+  } catch(e) { showToast('Erro ao gerar PDF ❌'); console.error(e); }
 }
 
 function closeDiagModal() {
@@ -2021,6 +2052,7 @@ function showToast(msg) {
     <div class="diag-text" id="diag-modal-text">—</div>
     <div class="diag-section-title">🎯 Plano de Ação</div>
     <div id="diag-modal-actions"></div>
+    <button class="btn-close-modal" style="background:var(--gold);color:var(--black);margin-top:10px" onclick="downloadDiagPDF()">⬇️ BAIXAR PDF</button>
     <button class="btn-close-modal" onclick="closeDiagModal()">FECHAR</button>
   </div>
 </div>
