@@ -1436,7 +1436,12 @@ function showScreen(id) {
 // ── Admin via URL secreta: ?admin ──
 window.addEventListener('load', () => {
   if (window.location.search.includes('admin')) {
-    showScreen('admin-login');
+    if (sessionStorage.getItem('adminAuth') === '1') {
+      showScreen('admin');
+      loadLeads();
+    } else {
+      showScreen('admin-login');
+    }
   } else {
     setTimeout(() => { showScreen('capture'); }, 2000);
   }
@@ -1852,6 +1857,7 @@ function adminLogin() {
   const pass = document.getElementById('admin-pass-input').value;
   if (pass === ADMIN_PASS) {
     document.getElementById('admin-error').textContent = '';
+    sessionStorage.setItem('adminAuth', '1');
     showScreen('admin');
     loadLeads();
   } else {
@@ -1859,7 +1865,10 @@ function adminLogin() {
   }
 }
 
-function adminLogout() { showScreen('capture'); }
+function adminLogout() {
+  sessionStorage.removeItem('adminAuth');
+  showScreen('capture');
+}
 function showScreenBlocked() { showScreen('blocked'); }
 
 async function loadLeads() {
