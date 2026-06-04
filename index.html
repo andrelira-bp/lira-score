@@ -1716,7 +1716,7 @@ function renderResult(total, pilarScores, aiResult) {
   });
 
   // WhatsApp CTA
-  const msg = encodeURIComponent(`Olá André! Acabei de fazer o diagnóstico KAIRÓS e meu score foi ${total}/100. Quero dar o próximo passo. Como funciona sua consultoria online? 💪`);
+  const msg = encodeURIComponent(`Olá Lira! Acabei de fazer o diagnóstico KAIRÓS e meu score foi ${total}/100. Quero dar o próximo passo. Como funciona sua consultoria online? 💪`);
   const wBtn = document.getElementById('btn-whatsapp');
   wBtn.onclick = () => window.open(`https://wa.me/${ANDRE_PHONE}?text=${msg}`, '_blank');
   const wBtnSvg = wBtn.querySelector('svg').outerHTML;
@@ -1928,7 +1928,7 @@ function renderLeads() {
       <div class="lead-top">
         <div>
           <div class="lead-name">${l.name}</div>
-          <a class="lead-phone" href="https://wa.me/55${l.phone?.replace(/\D/g,'')}?text=${encodeURIComponent(`Olá André! Acabei de fazer o diagnóstico KAIRÓS e meu score foi ${l.score}/100. Quero dar o próximo passo. Como funciona sua consultoria online? 💪`)}" target="_blank">📲 ${l.phone}</a>
+          <a class="lead-phone" href="https://wa.me/55${l.phone?.replace(/\D/g,'')}?text=${encodeURIComponent(`Olá Lira! Acabei de fazer o diagnóstico KAIRÓS e meu score foi ${l.score}/100. Quero dar o próximo passo. Como funciona sua consultoria online? 💪`)}" target="_blank">📲 ${l.phone}</a>
         </div>
         <div class="lead-score-badge">
           <div class="lead-score-num" style="color:${color}">${l.score}</div>
