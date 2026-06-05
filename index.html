@@ -1766,6 +1766,9 @@ async function downloadPDF() {
   if (!r) return;
   showToast('Gerando PDF... ⏳');
   const el = document.getElementById('screen-result');
+  // Oculta botões antes de capturar
+  const btns = el.querySelectorAll('.btn-cta, .btn-row, .btn-pdf, .btn-instagram, .btn-share');
+  btns.forEach(b => b.style.display = 'none');
   try {
     const canvas = await html2canvas(el, {
       backgroundColor: '#0a0a0a',
@@ -1796,6 +1799,9 @@ async function downloadPDF() {
   } catch(e) {
     console.error(e);
     showToast('Erro ao gerar PDF ❌');
+  } finally {
+    // Restaura botões
+    btns.forEach(b => b.style.display = '');
   }
 }
 
@@ -1807,6 +1813,8 @@ async function shareInstagram() {
   if (!r) return;
   showToast('Preparando imagem... ⏳');
   const el = document.getElementById('screen-result');
+  const btns = el.querySelectorAll('.btn-cta, .btn-row, .btn-pdf, .btn-instagram, .btn-share');
+  btns.forEach(b => b.style.display = 'none');
   try {
     const canvas = await html2canvas(el, {
       backgroundColor: '#0a0a0a',
@@ -1815,7 +1823,6 @@ async function shareInstagram() {
       logging: false
     });
     const dataUrl = canvas.toDataURL('image/png');
-    // Tenta Web Share API com arquivo (funciona no Chrome Android / Safari iOS)
     if (navigator.canShare) {
       const blob = await (await fetch(dataUrl)).blob();
       const file = new File([blob], 'KAIROS.png', { type: 'image/png' });
@@ -1824,7 +1831,6 @@ async function shareInstagram() {
         return;
       }
     }
-    // Fallback: baixa a imagem e mostra instrução
     const a = document.createElement('a');
     a.href = dataUrl;
     a.download = 'KAIROS_Instagram.png';
@@ -1832,6 +1838,8 @@ async function shareInstagram() {
     showToast('Imagem salva! Compartilhe nos Stories 📸');
   } catch(e) {
     if (e.name !== 'AbortError') showToast('Erro ao gerar imagem ❌');
+  } finally {
+    btns.forEach(b => b.style.display = '');
   }
 }
 
@@ -1994,6 +2002,8 @@ async function downloadDiagPDF() {
   const el = document.querySelector('.diag-modal');
   const name = document.getElementById('diag-modal-name').textContent || 'diagnostico';
   showToast('Gerando PDF... ⏳');
+  const btns = el.querySelectorAll('button');
+  btns.forEach(b => b.style.display = 'none');
   try {
     const canvas = await html2canvas(el, { backgroundColor:'#111', scale:2, useCORS:true, logging:false });
     const { jsPDF } = window.jspdf;
@@ -2014,7 +2024,12 @@ async function downloadDiagPDF() {
     }
     pdf.save(`KAIROS_${name.replace(/\s+/g,'_')}.pdf`);
     showToast('PDF salvo! ✅');
-  } catch(e) { showToast('Erro ao gerar PDF ❌'); console.error(e); }
+  } catch(e) {
+    showToast('Erro ao gerar PDF ❌');
+    console.error(e);
+  } finally {
+    btns.forEach(b => b.style.display = '');
+  }
 }
 
 function closeDiagModal() {
