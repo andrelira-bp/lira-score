@@ -1766,33 +1766,15 @@ async function downloadPDF() {
   if (!r) return;
   showToast('Gerando PDF... ⏳');
   const el = document.getElementById('screen-result');
-  // Oculta botões antes de capturar
   const btns = el.querySelectorAll('.btn-cta, .btn-row, .btn-pdf, .btn-instagram, .btn-share');
   btns.forEach(b => b.style.display = 'none');
   try {
-    const canvas = await html2canvas(el, {
-      backgroundColor: '#0a0a0a',
-      scale: 2,
-      useCORS: true,
-      logging: false
-    });
+    const canvas = await html2canvas(el, { backgroundColor:'#0a0a0a', scale:2, useCORS:true, logging:false });
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const imgW = 210;
     const imgH = (canvas.height * imgW) / canvas.width;
-    let pos = 0;
-    const pageH = 297;
-    if (imgH <= pageH) {
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, imgW, imgH);
-    } else {
-      let remaining = imgH;
-      while (remaining > 0) {
-        pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, -pos, imgW, imgH);
-        remaining -= pageH;
-        pos += pageH;
-        if (remaining > 0) pdf.addPage();
-      }
-    }
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:[imgW, imgH] });
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, imgW, imgH);
     const name = (userName || 'resultado').replace(/\s+/g, '_');
     pdf.save(`KAIROS_${name}.pdf`);
     showToast('PDF salvo! ✅');
@@ -1800,7 +1782,6 @@ async function downloadPDF() {
     console.error(e);
     showToast('Erro ao gerar PDF ❌');
   } finally {
-    // Restaura botões
     btns.forEach(b => b.style.display = '');
   }
 }
@@ -2007,21 +1988,10 @@ async function downloadDiagPDF() {
   try {
     const canvas = await html2canvas(el, { backgroundColor:'#111', scale:2, useCORS:true, logging:false });
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
     const imgW = 210;
     const imgH = (canvas.height * imgW) / canvas.width;
-    let pos = 0;
-    const pageH = 297;
-    if (imgH <= pageH) {
-      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, imgW, imgH);
-    } else {
-      let remaining = imgH;
-      while (remaining > 0) {
-        pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, -pos, imgW, imgH);
-        remaining -= pageH; pos += pageH;
-        if (remaining > 0) pdf.addPage();
-      }
-    }
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:[imgW, imgH] });
+    pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, imgW, imgH);
     pdf.save(`KAIROS_${name.replace(/\s+/g,'_')}.pdf`);
     showToast('PDF salvo! ✅');
   } catch(e) {
